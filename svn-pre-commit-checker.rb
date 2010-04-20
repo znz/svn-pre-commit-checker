@@ -16,7 +16,7 @@ class SvnPreCommitChecker
         [$1, $2]
       end
     end
-    File.foreach("#{@repos}/svn-pre-commit-checker.conf") do |line|
+    File.foreach("#{@repos}/hooks/svn-pre-commit-checker.conf") do |line|
       STDERR.puts "DEBUG:#{line.inspect}" if @debug
       next if /\A\s*\#/ =~ line
       m = line[/\A(\w+)/]
