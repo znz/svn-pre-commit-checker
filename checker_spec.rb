@@ -1,6 +1,10 @@
 #!/usr/bin/ruby
 require 'tmpdir'
-require 'svn-pre-commit-checker'
+begin
+  require_relative 'svn-pre-commit-checker'
+rescue NoMethodError
+  require File.expand_path('svn-pre-commit-checker', File.dirname(__FILE__))
+end
 
 CHECKER_PATH = File.join(File.dirname(File.expand_path(__FILE__)), 'svn-pre-commit-checker.rb')
 
