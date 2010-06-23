@@ -17,7 +17,8 @@ class SvnPreCommitChecker
         [$1, $2]
       end
     end
-    load("#{@repos}/hooks/svn-pre-commit-checker.conf")
+    conf_filename = "#{@repos}/hooks/svn-pre-commit-checker.conf"
+    eval(File.read(conf_filename), binding, conf_filename, 1)
     exit(@result)
   end
 
