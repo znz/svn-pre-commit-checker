@@ -28,21 +28,34 @@ class SvnPreCommitChecker
     exit(false)
   end
 
+  def reject(filepath, message)
+    STDERR.puts "#{filepath}: #{message}"
+    @result = false
+  end
+
+  ADDED = /\AA/
+  DELETED = /\AD/
+  UPDATED = /\AU/
+  PROP_CHANGED = /\A.U/
+
   def reject_filename(message, pattern, what_changed=//)
+    regexp(pattern, what_changed) do |changed, filepath|
+      reject filepath, message
+    end
+  end
+
+  def regexp(pattern, what_changed=//)
     case pattern
-    when String
-      pattern = Regexp.new(Regexp.quote(pattern))
     when Regexp
       # OK
+    when String
+      pattern = Regexp.new(Regexp.quote(pattern))
     else
       raise ArgumentError, "unknown pattern type #{pattern.inspect}"
     end
     @changed.each do |changed, filepath|
-      if pattern =~ filepath
-        if what_changed =~ changed
-          STDERR.puts "#{filepath}: #{message}"
-          @result = false
-        end
+      if pattern =~ filepath && what_changed =~ changed
+        yield(changed, filepath)
       end
     end
   end
