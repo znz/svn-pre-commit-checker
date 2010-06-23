@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+# -*- coding: utf-8 -*-
 
 class SvnPreCommitChecker
   SVNLOOK = '/usr/bin/svnlook'

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 reject_filename('Do not add system files', /Thumbs\.db\z/, /\AA/)
 reject_filename('Do not add temporary files', '~', /\AA/)
 reject_filename('Do not add temporary files', /\.bak\z/, /\AA/)
