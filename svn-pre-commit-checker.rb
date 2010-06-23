@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+
 class SvnPreCommitChecker
   SVNLOOK = '/usr/bin/svnlook'
 
@@ -16,24 +17,13 @@ class SvnPreCommitChecker
         [$1, $2]
       end
     end
-    File.foreach("#{@repos}/hooks/svn-pre-commit-checker.conf") do |line|
-      STDERR.puts "DEBUG:#{line.inspect}" if @debug
-      next if /\A\s*\#/ =~ line
-      m = line[/\A(\w+)/]
-      case m
-      when "debug"
-        @debug = true
-      when "fail"
-        STDERR.puts "fail in svn-pre-commit-checker.conf"
-        exit(false)
-      when "reject_filename"
-        eval(line)
-      else
-        STDERR.puts "unknown method #{m} in svn-pre-commit-checker.conf"
-        exit(false)
-      end
-    end
+    load("#{@repos}/hooks/svn-pre-commit-checker.conf")
     exit(@result)
+  end
+
+  def fail
+    STDERR.puts "fail in svn-pre-commit-checker.conf"
+    exit(false)
   end
 
   def reject_filename(message, pattern, what_changed=//)
