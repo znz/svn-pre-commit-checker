@@ -81,8 +81,9 @@ class TestSvnPreCommitChecker < Test::Unit::TestCase
   def test_reject_to_add_filename
     File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
       f.puts <<-'CONF'
-reject_filename('Do not add temporary files', '~', /\AA/)
-reject_filename('Do not add temporary files', /\.bak\z/, /\AA/)
+regexp ADDED, '~', /\.bak\z/ do
+  reject 'Do not add temporary files'
+end
       CONF
     end
 
@@ -93,10 +94,67 @@ reject_filename('Do not add temporary files', /\.bak\z/, /\AA/)
         assert_not_system("svn", "commit", "-m", "add hoge", filename)
         assert_system("svn", "rm", "--force", filename)
       end
+
+      %w"hoge_bak".each do |filename|
+        open(filename, "w"){|f|f.puts "hoge"}
+        assert_system("svn", "add", filename)
+        assert_system("svn", "commit", "-m", "add hoge", filename)
+      end
+    end
+  end
+
+  def test_reject_to_add_filename_old_style
+    File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
+      f.puts <<-'CONF'
+reject_filename('Do not add temporary files', '~', ADDED)
+reject_filename('Do not add temporary files', /\.bak\z/, ADDED)
+      CONF
+    end
+
+    Dir.chdir(@work) do
+      %w"hoge~ ho~ge hoge.bak".each do |filename|
+        open(filename, "w"){|f|f.puts "hoge"}
+        assert_system("svn", "add", filename)
+        assert_not_system("svn", "commit", "-m", "add hoge", filename)
+        assert_system("svn", "rm", "--force", filename)
+      end
+
+      %w"hoge_bak".each do |filename|
+        open(filename, "w"){|f|f.puts "hoge"}
+        assert_system("svn", "add", filename)
+        assert_system("svn", "commit", "-m", "add hoge", filename)
+      end
     end
   end
 
   def test_reject_to_update_filename
+    File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
+      f.puts <<-'CONF'
+regexp UPDATED, /\.bak\z/ do
+  reject 'You should remove temporary files'
+end
+      CONF
+    end
+
+    Dir.chdir(@work) do
+      open("hoge.bak", "w"){|f|f.puts "hoge"}
+      assert_system("svn add hoge.bak")
+      assert_system("svn commit -m 'add hoge.bak'")
+    File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
+      f.puts <<-'CONF'
+reject_filename('Do not add temporary files', /\.bak\z/, /\AA/)
+reject_filename('You should remove temporary files', /\.bak\z/, /\AU/)
+      CONF
+    end
+      open("hoge.bak", "a"){|f|f.puts "hoge"}
+      assert_not_system("svn commit -m 'update hoge.bak'")
+      File.unlink("hoge.bak")
+      assert_system("svn rm hoge.bak")
+      assert_system("svn commit -m 'remove hoge.bak'")
+    end
+  end
+
+  def test_reject_to_update_filename_old_style
     File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
       f.puts <<-'CONF'
 reject_filename('You should remove temporary files', /\.bak\z/, /\AU/)
