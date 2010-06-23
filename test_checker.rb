@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+# -*- coding: utf-8 -*-
 require 'test/unit'
 require 'tmpdir'
 begin
@@ -26,12 +27,12 @@ class TestSvnPreCommitChecker < Test::Unit::TestCase
     FileUtils.remove_entry_secure(@dir)
   end
 
-  def assert_system(cmdline)
-    assert(system(cmdline), cmdline)
+  def assert_system(*cmdline)
+    assert(system(*cmdline), "assert #{cmdline.inspect}")
   end
 
-  def assert_not_system(cmdline)
-    assert(!system(cmdline), cmdline)
+  def assert_not_system(*cmdline)
+    assert(!system(*cmdline), "assert not #{cmdline.inspect}")
   end
 
   def test_fail_to_add
@@ -86,11 +87,12 @@ reject_filename('Do not add temporary files', /\.bak\z/, /\AA/)
     end
 
     Dir.chdir(@work) do
-      %w"hoge hoge~ hoge.bak".each do |filename|
+      %w"hoge~ ho~ge hoge.bak".each do |filename|
         open(filename, "w"){|f|f.puts "hoge"}
-        assert_system("svn add #{filename}")
+        assert_system("svn", "add", filename)
+        assert_not_system("svn", "commit", "-m", "add hoge", filename)
+        assert_system("svn", "rm", "--force", filename)
       end
-      assert_not_system("svn commit -m 'add hoge'")
     end
   end
 
