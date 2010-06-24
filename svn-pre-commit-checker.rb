@@ -64,6 +64,16 @@ class SvnPreCommitChecker
       end
     end
   end
+
+  def basename(what_changed, *patterns)
+    @changed.each do |changed, filepath|
+      if what_changed =~ changed && patterns.any?{|pat| File.fnmatch(pat, File.basename(filepath)) }
+        @what_changed = changed
+        @filepath = filepath
+        yield(changed, filepath)
+      end
+    end
+  end
 end
 
 if __FILE__ == $0
