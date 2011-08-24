@@ -218,11 +218,23 @@ end
     File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
       f.puts <<-'CONF'
 regexp UPDATED, /(?:\A|\/)tags\// do
-  reject 'Do not edit files under tags'
+  reject 'Do not change files under tags'
 end
       CONF
     end
+    assert_reject_to_update_files_in_tags
+  end
 
+  def test_reject_to_update_files_in_tags_old_style
+    File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
+      f.puts <<-'CONF'
+reject_filename('Do not change files in tags', /(?:\A|\/)tags\//, UPDATED)
+      CONF
+    end
+    assert_reject_to_update_files_in_tags
+  end
+
+  def assert_reject_to_update_files_in_tags
     Dir.chdir(@work) do
       assert_system("svn mkdir branches tags trunk")
       assert_system("svn commit -m 'Initial directories'")
