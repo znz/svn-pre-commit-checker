@@ -1,5 +1,7 @@
 #!/usr/bin/ruby
 # -*- coding: utf-8 -*-
+# Copyright (C) 2010, 2011 Kazuhiro NISHIYAMA
+
 require 'test/unit'
 require 'tmpdir'
 begin
