@@ -213,4 +213,30 @@ end
       end
     end
   end
+
+  def test_reject_to_update_files_in_tags
+    File.open("#{@repo}/hooks/svn-pre-commit-checker.conf", "w") do |f|
+      f.puts <<-'CONF'
+regexp UPDATED, /(?:\A|\/)tags\// do
+  reject 'Do not edit files under tags'
+end
+      CONF
+    end
+
+    Dir.chdir(@work) do
+      assert_system("svn mkdir branches tags trunk")
+      assert_system("svn commit -m 'Initial directories'")
+      open("trunk/hoge.txt", "w"){|f|f.puts "hoge"}
+      assert_system("svn add trunk/hoge.txt")
+      assert_system("svn commit -m 'add hoge.txt'")
+      assert_system("svn cp trunk tags/0.0.1")
+      assert_system("svn commit -m '0.0.1 relaesed'")
+      open("tags/0.0.1/hoge.txt", "w"){|f|f.puts "hoge hoge"}
+      assert_not_system("svn commit -m 'change hoge in tags'")
+      open("tags/0.0.1/hoge.txt", "w"){|f|f.puts "hoge hoge"}
+      assert_not_system("svn commit -m 'change hoge in tags'")
+      assert_system("svn rm --force tags/0.0.1")
+      assert_system("svn commit -m 'remove 0.0.1 tag'")
+    end
+  end
 end
