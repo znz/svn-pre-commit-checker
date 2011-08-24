@@ -1,0 +1,8 @@
+# -*- coding: utf-8 -*-
+reject_filename('Do not add system files', /Thumbs\.db\z/, ADDED)
+reject_filename('Do not add temporary files', '~', ADDED)
+reject_filename('Do not add temporary files', /\.bak\z/, ADDED)
+reject_filename('You should remove system files', /Thumbs\.db\z/, UPDATED)
+reject_filename('You should remove temporary files', '~', UPDATED)
+reject_filename('You should remove temporary files', /\.bak\z/, UPDATED)
+reject_filename('Do not change files in tags', /(?:\A|\/)tags\//, UPDATED)
